@@ -1,0 +1,50 @@
+.bg-custom-header{
+    background: linear-gradient(90deg, #0B2E5B 0%, #1E4F8A 100%);
+}
+
+.navbar{
+    border-bottom: 3px solid #2E6CB5;
+}
+
+.navbar-brand{
+    font-size: 1rem;
+    letter-spacing: .3px;
+}
+
+.navbar-brand img{
+    box-shadow: 0 4px 10px rgba(0,0,0,.15);
+}
+
+.nav-link{
+    color: rgba(255,255,255,.92) !important;
+    border-radius: 10px;
+    padding: .55rem .9rem !important;
+    transition: all .25s ease;
+}
+
+.nav-link:hover{
+    background: rgba(255,255,255,.12);
+    color: #fff !important;
+}
+
+.nav-link.active{
+    background: rgba(255,255,255,.18);
+    color: #fff !important;
+}
+
+.dropdown-menu{
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.dropdown-item{
+    padding: .7rem 1rem;
+}
+
+.dropdown-item:hover{
+    background: #F4F7FB;
+}
+
+body{
+    background: #F4F7FB;
+}
