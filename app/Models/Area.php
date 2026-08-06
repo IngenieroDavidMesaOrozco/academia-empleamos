@@ -8,7 +8,10 @@ use App\Models\Curso;
 class Area extends Model
 {
     protected $fillable = [
-        'nombre'
+        'nombre',
+        'descripcion',
+        'video',
+        'archivo_diapositivas'
     ];
 
     public function cursos()

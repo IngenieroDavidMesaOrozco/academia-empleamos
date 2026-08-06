@@ -16,9 +16,9 @@ class EstudianteController extends Controller
         $evaluacion->load('preguntas.opciones');
 
         return view(
-    'admin.estudiante.evaluacion',
-    compact('evaluacion')
-);
+            'admin.estudiante.evaluacion',
+            compact('evaluacion')
+        );
     }
 
     public function responder(Request $request, Evaluacion $evaluacion)
@@ -143,12 +143,12 @@ class EstudianteController extends Controller
         );
 
         return view(
-    'admin.estudiante.dashboard',
-    compact(
-        'cursos',
-        'certificados'
-    )
-);
+            'admin.estudiante.dashboard',
+            compact(
+                'cursos',
+                'certificados'
+            )
+        );
     }
 
     public function curso($id)
@@ -195,34 +195,42 @@ class EstudianteController extends Controller
                 }
             }
 
+            // A module is unlocked if it's the first one, or if it has 0 lessons, or if all lessons are completed.
+            $porcentajeModulo = $total > 0 ? ($completadasModulo / $total) * 100 : 0;
             $modulosDesbloqueados[$modulo->id] =
-                ($total == 0 || $completadasModulo == $total);
+                ($total == 0 || $porcentajeModulo >= 80);
         }
 
         return view(
-    'admin.estudiante.curso',
-    compact(
-        'curso',
-        'completadas',
-        'porcentaje',
-        'totalLecciones',
-        'leccionesCompletadas',
-        'modulosDesbloqueados'
-    )
-);
+            'admin.estudiante.curso',
+            compact(
+                'curso',
+                'completadas',
+                'porcentaje',
+                'totalLecciones',
+                'leccionesCompletadas',
+                'modulosDesbloqueados'
+            )
+        );
     }
+
     public function bienvenida()
-{
-    return view('admin.estudiante.bienvenida');
-}
+    {
+        return view('admin.estudiante.bienvenida');
+    }
 
-public function completarBienvenida()
-{
-    $user = auth()->user();
+    public function completarBienvenida()
+    {
+        $user = auth()->user();
 
-    $user->vio_video_bienvenida = true;
-    $user->save();
+        $user->vio_video_bienvenida = true;
+        $user->save();
 
-    return redirect()->route('estudiante.dashboard');
-}
+        // Redirect to change password if necessary after watching video.
+        if ($user->password_temporal) {
+            return redirect()->route('password.forzar.cambio');
+        }
+
+        return redirect()->route('estudiante.dashboard');
+    }
 }

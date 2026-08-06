@@ -5,7 +5,6 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Parametro;
 
 class ForzarCambioPassword
 {
@@ -23,7 +22,12 @@ class ForzarCambioPassword
         }
 
         // Permitir acceso libre a las rutas del propio formulario de cambio
-        if ($request->routeIs('password.forzar.cambio') || $request->routeIs('password.procesar.cambio')) {
+        if ($request->routeIs('password.forzar.cambio') || $request->routeIs('password.procesar.cambio') || $request->routeIs('password.procesar_cambio')) {
+            return $next($request);
+        }
+
+        // ** NUEVO ** Si es estudiante y no ha visto el video, no lo obligue a cambiar la clave AUN
+        if ($user->hasRole(['estudiante', 'Estudiante']) && !$user->vio_video_bienvenida) {
             return $next($request);
         }
 
@@ -36,9 +40,8 @@ class ForzarCambioPassword
         }
 
         // Evaluar cambio periódico desde la tabla de parámetros
-         //$diasPeriodo = Parametro::where('clave', 'dias_cambio_password')->value('tiempo_para_cambio_contraseña') ?? 90;
         $diasPeriodo = 90;
-         $diasDesdeUltimoCambio = $user->last_password_change ? $user->last_password_change->diffInDays(now()) : 999;
+        $diasDesdeUltimoCambio = $user->last_password_change ? $user->last_password_change->diffInDays(now()) : 999;
 
         if ($user->password_temporal || $diasDesdeUltimoCambio >= $diasPeriodo) {
             session(['forzar_cambio_password' => true]);

@@ -19,6 +19,7 @@ use App\Http\Controllers\ProgresoController;
 use App\Http\Controllers\RecursoController;
 use App\Http\Controllers\UsuarioController; 
 use App\Http\Middleware\ForzarCambioPassword;
+use App\Http\Middleware\VerificarBienvenida;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,8 +67,13 @@ Route::get('/home', function () {
     $user = auth()->user();
 
     // Si es Administrador o SuperAdmin va directo a su panel
-    if ($user->hasRole('SuperAdmin') || $user->hasRole('Admin')) {
+    if ($user->hasRole(['SuperAdmin', 'Admin', 'admin', 'Administrador'])) {
         return redirect()->route('admin.dashboard');
+    }
+
+    // Si es estudiante y no ha visto el video de bienvenida
+    if ($user->hasRole(['estudiante', 'Estudiante']) && !$user->vio_video_bienvenida) {
+        return redirect()->route('estudiante.bienvenida');
     }
 
     // Si la contraseña es temporal, debe cambiarla primero
@@ -75,13 +81,8 @@ Route::get('/home', function () {
         return redirect()->route('password.forzar.cambio');
     }
 
-    // Si es estudiante y no ha visto el video de bienvenida
-    if ($user->hasRole('estudiante') && !$user->vio_video_bienvenida) {
-        return redirect()->route('estudiante.bienvenida');
-    }
-
     // Redirección final por rol
-    if ($user->hasRole('estudiante')) {
+    if ($user->hasRole(['estudiante', 'Estudiante'])) {
         return redirect()->route('estudiante.dashboard');
     }
 
@@ -89,6 +90,7 @@ Route::get('/home', function () {
 
 })->middleware([
     'auth',
+    VerificarBienvenida::class,
     ForzarCambioPassword::class,
 ])->name('home');
 
@@ -98,14 +100,16 @@ Route::get('/home', function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', ForzarCambioPassword::class])->group(function () {
+Route::middleware(['auth', VerificarBienvenida::class, ForzarCambioPassword::class])->group(function () {
 
-    // Video de bienvenida
+    // Video de bienvenida (Excluido de ForzarCambioPassword vía lógica del middleware y orden)
     Route::get('/estudiante/bienvenida', [EstudianteController::class, 'bienvenida'])
-        ->name('estudiante.bienvenida');
+        ->name('estudiante.bienvenida')
+        ->withoutMiddleware([ForzarCambioPassword::class]);
 
     Route::post('/estudiante/bienvenida/completar', [EstudianteController::class, 'completarBienvenida'])
-        ->name('estudiante.bienvenida.completar');
+        ->name('estudiante.bienvenida.completar')
+        ->withoutMiddleware([ForzarCambioPassword::class]);
 
     // Dashboard
     Route::get('/estudiante', [EstudianteController::class, 'dashboard'])
