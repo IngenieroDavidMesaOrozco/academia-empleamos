@@ -13,7 +13,8 @@ class VerificarCambioPasswordListener
         // ⚠️ Refrescar datos desde base de datos
         $user = $event->user->fresh();
 
-        $dias = Parametro::first()->tiempo_para_cambio_contraseña;
+        $parametro = Parametro::first();
+        $dias = $parametro ? $parametro->tiempo_para_cambio_contraseña : 90;
 
         if (is_null($dias)) {
             return;
