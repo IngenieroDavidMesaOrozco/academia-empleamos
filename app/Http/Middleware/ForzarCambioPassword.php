@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Parametro;
+use Carbon\Carbon;
 
 class ForzarCambioPassword
 {
@@ -31,14 +31,19 @@ class ForzarCambioPassword
         if ($user->password_temporal && $user->password_expires_at && now()->greaterThan($user->password_expires_at)) {
             Auth::logout();
             return redirect()->route('login')->withErrors([
-                'email' => 'Tu contraseña temporal ha caducado. Ponte en contacto con soporte.',
+                'login' => 'Tu contraseña temporal ha caducado. Ponte en contacto con soporte.',
             ]);
         }
 
-        // Evaluar cambio periódico desde la tabla de parámetros
-         //$diasPeriodo = Parametro::where('clave', 'dias_cambio_password')->value('tiempo_para_cambio_contraseña') ?? 90;
+        // Evaluar cambio periódico
         $diasPeriodo = 90;
-         $diasDesdeUltimoCambio = $user->last_password_change ? $user->last_password_change->diffInDays(now()) : 999;
+        $diasDesdeUltimoCambio = 999;
+
+        // PARSEO SEGURO: Convertimos a fecha de Carbon para evitar errores 500
+        if ($user->last_password_change) {
+            $fechaCambio = Carbon::parse($user->last_password_change);
+            $diasDesdeUltimoCambio = $fechaCambio->diffInDays(now());
+        }
 
         if ($user->password_temporal || $diasDesdeUltimoCambio >= $diasPeriodo) {
             session(['forzar_cambio_password' => true]);

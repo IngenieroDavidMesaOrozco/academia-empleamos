@@ -25,8 +25,14 @@ class Modulo extends Model
         return $this->hasMany(Leccion::class);
     }
 
+    // Compatibilidad total (singular y plural) para evitar errores en relaciones
     public function evaluacion()
-{
-    return $this->hasOne(Evaluacion::class);
-}
+    {
+        return $this->hasOne(Evaluacion::class, 'modulo_id');
+    }
+
+    public function evaluaciones()
+    {
+        return $this->hasMany(Evaluacion::class, 'modulo_id');
+    }
 }

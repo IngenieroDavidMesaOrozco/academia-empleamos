@@ -1,1 +1,372 @@
-:root { --et-primary: #0B2F6B; --et-primary-light: #174A9C; --et-accent: #2E6CC5; --et-bg: #F5F7FB; --et-card: #FFFFFF; --et-text: #1F2937; --et-muted: #6B7280; --et-border: #E5E7EB; --et-success: #16A34A; --et-danger: #DC2626; --et-warning: #F59E0B; } body { background: var(--et-bg); color: var(--et-text); font-family: 'Segoe UI', sans-serif; } .wrapper { display: flex; min-height: 100vh; } .sidebar { width: 260px; background: linear-gradient(180deg, var(--et-primary), #081F49); color: white; padding: 24px 20px; position: fixed; height: 100vh; overflow-y: auto; } .sidebar-header { display: flex; align-items: center; gap: 14px; } .logo-circle { width: 52px; height: 52px; border-radius: 14px; background: rgba(255,255,255,.14); display: flex; align-items: center; justify-content: center; font-size: 22px; } .sidebar-nav a { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; color: rgba(255,255,255,.92); text-decoration: none; margin-bottom: 6px; transition: .2s; font-weight: 500; } .sidebar-nav a:hover, .sidebar-nav a.active { background: rgba(255,255,255,.14); color: white; } .main-content { margin-left: 260px; flex: 1; } .topbar { background: white; border-bottom: 1px solid var(--et-border); padding: 16px 28px; display: flex; justify-content: space-between; align-items: center; } .content-area { padding: 28px; } .avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--et-accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; } .card { border: 1px solid var(--et-border); border-radius: 20px; box-shadow: 0 8px 24px rgba(15,23,42,.06); } .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 18px; } .metric-card { background: white; border: 1px solid var(--et-border); border-radius: 22px; padding: 22px; box-shadow: 0 8px 24px rgba(15,23,42,.05); } .metric-icon { width: 54px; height: 54px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: white; margin-bottom: 16px; font-size: 22px; } .bg-usuarios { background: var(--et-primary); } .bg-cursos { background: #2563EB; } .bg-modulos { background: #7C3AED; } .bg-cert { background: #059669; } .table { border-radius: 18px; overflow: hidden; background: white; } .table thead { background: #F8FAFC; } .table thead th { border-bottom: 1px solid var(--et-border); color: #334155; font-weight: 700; padding: 16px; } .table tbody td { padding: 16px; border-color: var(--et-border); } .btn-primary { background: var(--et-primary); border-color: var(--et-primary); border-radius: 12px; font-weight: 600; padding: 10px 18px; } .btn-primary:hover { background: var(--et-primary-light); border-color: var(--et-primary-light); } .btn-outline-primary, .btn-outline-danger, .btn-outline-warning, .btn-outline-secondary { border-radius: 12px; font-weight: 600; } .form-control, .form-select { border-radius: 14px; border: 1px solid var(--et-border); padding: 12px 14px; } .form-control:focus, .form-select:focus { border-color: var(--et-accent); box-shadow: 0 0 0 .2rem rgba(46,108,197,.15); } .badge { border-radius: 999px; padding: .5rem .9rem; font-weight: 600; } .progress { height: 8px; border-radius: 999px; background: #E5E7EB; } .progress-bar { background: var(--et-accent); } .module-card { border: 1px solid var(--et-border); border-radius: 20px; overflow: hidden; background: white; transition: .2s; } .module-card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(15,23,42,.08); } .module-banner { height: 120px; background: linear-gradient(135deg, var(--et-primary), var(--et-accent)); } .module-body { padding: 18px; } .text-muted { color: var(--et-muted) !important; } @media (max-width: 992px) { .sidebar { position: relative; width: 100%; height: auto; } .main-content { margin-left: 0; } .wrapper { flex-direction: column; } }
+/* ==========================================================================
+   1. VARIABLES DE TEMA
+   ========================================================================== */
+:root {
+    --et-primary: #0B2F6B;
+    --et-primary-light: #174A9C;
+    --et-accent: #2E6CC5;
+    --et-bg: #F5F7FB;
+    --et-card: #FFFFFF;
+    --et-text: #1F2937;
+    --et-muted: #6B7280;
+    --et-border: #E5E7EB;
+    --et-success: #16A34A;
+    --et-danger: #DC2626;
+    --et-warning: #F59E0B;
+}
+
+/* ==========================================================================
+   2. ESTILOS BASE Y ESTRUCTURA GENERAL
+   ========================================================================== */
+body {
+    background: var(--et-bg);
+    color: var(--et-text);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main-content {
+    margin-left: 260px;
+    flex: 1;
+}
+
+.content-area {
+    padding: 28px;
+}
+
+.text-muted {
+    color: var(--et-muted) !important;
+}
+
+/* ==========================================================================
+   3. SIDEBAR (BARRA LATERAL) & BRANDING
+   ========================================================================== */
+.sidebar {
+    width: 260px;
+    background: linear-gradient(180deg, var(--et-primary), #081F49);
+    color: white;
+    padding: 24px 20px;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.logo-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.14);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+
+/* --- Logo Corporativo --- */
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    text-decoration: none;
+    border-radius: 14px;
+    transition: all 0.25s ease;
+}
+
+.sidebar-brand:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(3px);
+}
+
+.sidebar-brand-logo {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+
+.sidebar-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.brand-title {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.brand-subtitle {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* --- Navegación Lateral --- */
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.92);
+    text-decoration: none;
+    margin-bottom: 6px;
+    transition: 0.2s;
+    font-weight: 500;
+}
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   4. TOPBAR (BARRA SUPERIOR)
+   ========================================================================== */
+.topbar {
+    background: #ffffff;
+    border-bottom: 1px solid var(--et-border);
+    padding: 16px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--et-accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   5. TARJETAS Y COMPONENTES DE DASHBOARD
+   ========================================================================== */
+.card {
+    border: 1px solid var(--et-border);
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+.metric-card {
+    background: #ffffff;
+    border: 1px solid var(--et-border);
+    border-radius: 22px;
+    padding: 22px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.metric-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-bottom: 16px;
+    font-size: 22px;
+}
+
+/* Fondos temáticos */
+.bg-usuarios { background: var(--et-primary); }
+.bg-cursos   { background: #2563EB; }
+.bg-modulos  { background: #7C3AED; }
+.bg-cert     { background: #059669; }
+
+/* Tarjetas de Módulos */
+.module-card {
+    border: 1px solid var(--et-border);
+    border-radius: 20px;
+    overflow: hidden;
+    background: #ffffff;
+    transition: 0.2s;
+}
+
+.module-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+}
+
+.module-banner {
+    height: 120px;
+    background: linear-gradient(135deg, var(--et-primary), var(--et-accent));
+}
+
+.module-body {
+    padding: 18px;
+}
+
+/* ==========================================================================
+   6. TABLAS, BOTONES Y FORMULARIOS
+   ========================================================================== */
+.table {
+    border-radius: 18px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.table thead {
+    background: #F8FAFC;
+}
+
+.table thead th {
+    border-bottom: 1px solid var(--et-border);
+    color: #334155;
+    font-weight: 700;
+    padding: 16px;
+}
+
+.table tbody td {
+    padding: 16px;
+    border-color: var(--et-border);
+}
+
+.btn-primary {
+    background: var(--et-primary);
+    border-color: var(--et-primary);
+    border-radius: 12px;
+    font-weight: 600;
+    padding: 10px 18px;
+}
+
+.btn-primary:hover {
+    background: var(--et-primary-light);
+    border-color: var(--et-primary-light);
+}
+
+.btn-outline-primary,
+.btn-outline-danger,
+.btn-outline-warning,
+.btn-outline-secondary {
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.form-control,
+.form-select {
+    border-radius: 14px;
+    border: 1px solid var(--et-border);
+    padding: 12px 14px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--et-accent);
+    box-shadow: 0 0 0 0.2rem rgba(46, 108, 197, 0.15);
+}
+
+.badge {
+    border-radius: 999px;
+    padding: 0.5rem 0.9rem;
+    font-weight: 600;
+}
+
+.progress {
+    height: 8px;
+    border-radius: 999px;
+    background: #E5E7EB;
+}
+
+.progress-bar {
+    background: var(--et-accent);
+}
+
+/* ==========================================================================
+   7. DISEÑO RESPONSIVO (MÓVILES Y TABLETAS)
+   ========================================================================== */
+@media (max-width: 992px) {
+    .wrapper {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+}
+/* --- Ajuste del Logo en el Sidebar --- */
+.logo-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.14);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Evita que la imagen sobresalga del contenedor */
+    padding: 6px;
+}
+
+.logo-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Ajusta la imagen proporcionalmente */
+}
+
+/* --- Control de estructura y scroll horizontal --- */
+body, html {
+    overflow-x: hidden;
+}
+
+.wrapper {
+    display: flex;
+    min-height: 100vh;
+    width: 100vw;
+    max-width: 100%;
+}
+
+.main-content {
+    margin-left: 260px;
+    flex: 1;
+    min-width: 0; /* Previene desbordamiento en CSS Grid */
+}
+
+/* --- Reorganización de las Tarjetas de Módulos --- */
+.modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.module-card {
+    border: 1px solid var(--et-border);
+    border-radius: 16px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.module-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}

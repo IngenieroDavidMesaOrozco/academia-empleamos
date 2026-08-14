@@ -9,21 +9,14 @@ class Evaluacion extends Model
     protected $table = 'evaluaciones';
 
     protected $fillable = [
-
-    'modulo_id',
-
-    'titulo',
-
-    'descripcion',
-
-    'puntaje_aprobacion',
-
-    'tiempo',
-
-    'estado'
-
-];
-
+        'modulo_id',
+        'leccion_id', // <--- ESTA LÍNEA ES LA QUE FALTABA
+        'titulo',
+        'descripcion',
+        'puntaje_aprobacion',
+        'tiempo',
+        'estado'
+    ];
 
     public function preguntas()
     {
@@ -33,5 +26,10 @@ class Evaluacion extends Model
     public function modulo()
     {
         return $this->belongsTo(Modulo::class);
+    }
+
+    public function leccion()
+    {
+        return $this->belongsTo(Leccion::class);
     }
 }

@@ -56,7 +56,7 @@
                     <thead class="table-dark">
 
                         <tr>
-                            <th width="80">ID</th>
+                           
                             <th>Nombre</th>
                             <th width="180">Fecha de creación</th>
                             <th width="220">Acciones</th>
@@ -71,11 +71,7 @@
 
                             <tr>
 
-                                <!-- ID del área -->
-                                <td class="fw-semibold">
-                                    {{ $area->id }}
-                                </td>
-
+                              
                                 <!-- Nombre del área -->
                                 <td>
                                     <div class="fw-semibold">

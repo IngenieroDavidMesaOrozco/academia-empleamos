@@ -115,6 +115,7 @@ class UsuarioController extends Controller
         $usuario->email = $request->email;
         $usuario->username = $request->username;
 
+        // Si el administrador escribe una nueva contraseña, la actualiza de forma segura
         if ($request->filled('password')) {
             $usuario->password = Hash::make($request->password);
             $usuario->password_temporal = false;
@@ -124,6 +125,7 @@ class UsuarioController extends Controller
 
         $usuario->save();
 
+        // Actualización de roles
         if ($request->filled('roles')) {
             $roles = Role::whereIn('id', $request->roles)->pluck('name')->toArray();
             $usuario->syncRoles($roles);
@@ -134,7 +136,6 @@ class UsuarioController extends Controller
         return redirect()->route('usuarios.index')
             ->with('success', 'Usuario actualizado correctamente.');
     }
-
     /**
      * Activar / desactivar usuario
      */

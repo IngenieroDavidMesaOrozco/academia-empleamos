@@ -55,7 +55,7 @@ class LeccionController extends Controller
     }
 
     /**
-     * Vista para el estudiante
+     * Vista para el administrador
      */
     public function show(Leccion $leccion)
     {
@@ -64,8 +64,10 @@ class LeccionController extends Controller
             'recursos'
         ]);
 
+        // CAMBIO AQUÍ: Apuntamos a la vista correcta del administrador
+        // Asegúrate de que el archivo exista en: resources/views/admin/lecciones/show.blade.php
         return view(
-            'estudiante.leccion',
+            'admin.lecciones.show',
             compact('leccion')
         );
     }

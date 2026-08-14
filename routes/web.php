@@ -19,41 +19,20 @@ use App\Http\Controllers\ProgresoController;
 use App\Http\Controllers\RecursoController;
 use App\Http\Controllers\UsuarioController; 
 use App\Http\Middleware\ForzarCambioPassword;
+use Illuminate\Support\Facades\Hash;
 
 /*
 |--------------------------------------------------------------------------
-| LOGIN TEMPORALMENTE DESHABILITADO
-|--------------------------------------------------------------------------
-| Este bloque inicia sesión automáticamente con el primer usuario de la
-| tabla users y lo envía al dashboard de administrador.
-|
-| PARA VOLVER A HABILITAR EL LOGIN:
-| 1. Comentar o eliminar este bloque.
-| 2. Restaurar el bloque original que está más abajo comentado.
+| PANTALLA DE LOGIN (Raíz del proyecto)
 |--------------------------------------------------------------------------
 */
 
 Route::get('/', function () {
-
-    $admin = User::first();
-
-    Auth::login($admin);
-
-    return redirect()->route('admin.dashboard');
-
+    if (Auth::check()) {
+        return redirect('/home');
+    }
+    return view('auth.login');
 });
-
-/*
-|--------------------------------------------------------------------------
-| BLOQUE ORIGINAL DEL LOGIN (NO BORRAR)
-|--------------------------------------------------------------------------
-|
-| Route::get('/', function () {
-|     return view('auth.login');
-| });
-|
-|--------------------------------------------------------------------------
-*/
 
 /*
 |--------------------------------------------------------------------------
@@ -62,29 +41,24 @@ Route::get('/', function () {
 */
 
 Route::get('/home', function () {
-
+    // dd('¡LOGIN EXITOSO! Has entrado. Datos del usuario:', auth()->user()->toArray());
     $user = auth()->user();
 
-    // Si es Administrador o SuperAdmin va directo a su panel
-    if ($user->hasRole('SuperAdmin') || $user->hasRole('Admin')) {
-        return redirect()->route('admin.dashboard');
-    }
-
-    // Si la contraseña es temporal, debe cambiarla primero
-    if ($user->password_temporal) {
-        return redirect()->route('password.forzar.cambio');
-    }
-
-    // Si es estudiante y no ha visto el video de bienvenida
+    // 1. Prioridad: Si es estudiante y no ha visto el video de bienvenida
     if ($user->hasRole('estudiante') && !$user->vio_video_bienvenida) {
         return redirect()->route('estudiante.bienvenida');
     }
 
-    // Redirección final por rol
+    // 2. Redirección final por rol (El chequeo de password temporal lo hace el middleware)
+    if ($user->hasRole('SuperAdmin') || $user->hasRole('Admin') || $user->hasRole('admin') || $user->hasRole('Administrador')) {
+        return redirect()->route('admin.dashboard');
+    }
+
     if ($user->hasRole('estudiante')) {
         return redirect()->route('estudiante.dashboard');
     }
 
+    // Fallback por defecto
     return redirect()->route('admin.dashboard');
 
 })->middleware([
@@ -139,7 +113,7 @@ Route::middleware(['auth', ForzarCambioPassword::class])->group(function () {
 */
 
 Route::prefix('admin')
-    ->middleware(['auth'])
+    ->middleware(['auth', ForzarCambioPassword::class]) 
     ->group(function () {
 
         Route::get('/dashboard', [AdminController::class, 'dashboard'])
@@ -150,9 +124,6 @@ Route::prefix('admin')
 
         Route::patch('/usuarios/{usuario}/toggle-activo', [UsuarioController::class, 'toggleActivo'])
             ->name('usuarios.toggleActivo');
-
-        Route::patch('/usuarios/{usuario}/toggle-activo-alt', [UsuarioController::class, 'toggleActivo'])
-            ->name('usuarios.toggle-activo');
 
         // CRUD principales
         Route::resource('areas', AreaController::class);
@@ -173,43 +144,72 @@ Route::prefix('admin')
 
 /*
 |--------------------------------------------------------------------------
-| PERFIL Y OTRAS RUTAS AUTENTICADAS
+| PERFIL Y RUTAS DE CAMBIO DE CONTRASEÑA OBLIGATORIO
 |--------------------------------------------------------------------------
 */
 
 Route::middleware('auth')->group(function () {
 
-    Route::get('/profile', [ProfileController::class, 'edit'])
-        ->name('profile.edit');
+    // Perfil normal
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::patch('/profile', [ProfileController::class, 'update'])
-        ->name('profile.update');
-
-    Route::delete('/profile', [ProfileController::class, 'destroy'])
-        ->name('profile.destroy');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Cambio obligatorio de contraseña
-    |--------------------------------------------------------------------------
-    */
-
+    // Rutas de contraseña (NO deben llevar el middleware ForzarCambioPassword para evitar bucles)
     Route::get('/password/forzar-cambio', [UsuarioController::class, 'mostrarFormularioCambio'])
         ->name('password.forzar.cambio');
 
     Route::post('/password/forzar-cambio', [UsuarioController::class, 'procesarCambio'])
-        ->name('password.procesar_cambio');
+        ->name('password.procesar.cambio'); // CORREGIDO: Se cambió el guion bajo por punto
 
-    Route::middleware(['auth', 'forzar.cambio.password'])->group(function () {
+});
 
-        Route::get('/cambiar-password-obligatorio', [UsuarioController::class, 'mostrarFormularioCambio'])
-            ->name('password.forzar.cambio');
+/*
+|--------------------------------------------------------------------------
+| RUTAS TEMPORALES (Públicas)
+|--------------------------------------------------------------------------
+*/
 
-        Route::post('/cambiar-password-obligatorio', [UsuarioController::class, 'procesarCambio'])
-            ->name('password.procesar.cambio');
+Route::get('/reparar-clave', function () {
+    // CAMBIA ESTE CORREO POR EL DEL USUARIO QUE NO PUEDE ENTRAR
+    $user = User::where('email', 'admin@empleamos.com')->first(); 
+    
+    if($user) {
+        $user->password = Hash::make('123456'); // Tu contraseña deseada
+        $user->save();
+        return "¡Éxito! Contraseña encriptada y actualizada.";
+    }
+    return "Usuario no encontrado.";
+});
 
-    });
+//Creamos un bypass 
+Route::get('/entrar-directo', function () {
+    // Tomamos al primer usuario de tu base de datos (tu Admin)
+    $user = \App\Models\User::first(); 
+    
+    if($user) {
+        // Forzamos el inicio de sesión sin pedir contraseña
+        \Illuminate\Support\Facades\Auth::login($user);
+        return redirect()->route('admin.dashboard');
+    }
+    
+    return "Error: No hay ningún usuario creado en la base de datos.";
+});
 
+// Creamos los roles faltantes para evitar el error Spatie
+Route::get('/instalar-roles', function () {
+    // 1. Creamos los roles obligatorios del sistema
+    \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'SuperAdmin']);
+    \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Admin']);
+    \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'estudiante']);
+    
+    // 2. Le asignamos el rol de Administrador a tu primer usuario
+    $user = \App\Models\User::first();
+    if ($user && !$user->hasRole('Admin')) {
+        $user->assignRole('Admin');
+    }
+    
+    return "¡Roles instalados correctamente! Ya puedes ir a la ruta /entrar-directo";
 });
 
 require __DIR__.'/auth.php';

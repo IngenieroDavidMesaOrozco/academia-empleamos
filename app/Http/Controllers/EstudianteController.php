@@ -16,9 +16,9 @@ class EstudianteController extends Controller
         $evaluacion->load('preguntas.opciones');
 
         return view(
-    'admin.estudiante.evaluacion',
-    compact('evaluacion')
-);
+            'admin.estudiante.evaluacion',
+            compact('evaluacion')
+        );
     }
 
     public function responder(Request $request, Evaluacion $evaluacion)
@@ -26,14 +26,10 @@ class EstudianteController extends Controller
         $evaluacion->load('preguntas.opciones');
 
         $correctas = 0;
-
         $total = $evaluacion->preguntas->count();
 
         foreach ($evaluacion->preguntas as $pregunta) {
-
-            $respuesta = $request->input(
-                'pregunta_' . $pregunta->id
-            );
+            $respuesta = $request->input('pregunta_' . $pregunta->id);
 
             $correcta = $pregunta->opciones
                 ->where('correcta', 1)
@@ -49,17 +45,14 @@ class EstudianteController extends Controller
             : 0;
 
         ResultadoEvaluacion::updateOrCreate(
-
             [
                 'usuario_id' => auth()->id(),
                 'evaluacion_id' => $evaluacion->id
             ],
-
             [
                 'nota' => $nota,
-                'aprobado' => $nota >= $evaluacion->puntaje_aprobacion
+                'aprobado' => $nota >= ($evaluacion->puntaje_aprobacion ?? 60)
             ]
-
         );
 
         $curso = Curso::with([
@@ -79,7 +72,6 @@ class EstudianteController extends Controller
         $aproboTodo = true;
 
         foreach ($curso->modulos as $modulo) {
-
             if (!$modulo->evaluacion) {
                 continue;
             }
@@ -96,24 +88,19 @@ class EstudianteController extends Controller
         $certificado = null;
 
         if ($aproboTodo) {
-
             $certificado = Certificado::firstOrCreate(
-
                 [
                     'usuario_id' => auth()->id(),
                     'curso_id' => $curso->id
                 ],
-
                 [
                     'codigo' => 'CERT-' . time() . '-' . rand(1000, 9999),
                     'fecha_emision' => now()
                 ]
-
             );
         }
 
         if ($certificado) {
-
             return redirect()->route(
                 'certificado.show',
                 $certificado
@@ -143,12 +130,12 @@ class EstudianteController extends Controller
         );
 
         return view(
-    'admin.estudiante.dashboard',
-    compact(
-        'cursos',
-        'certificados'
-    )
-);
+            'admin.estudiante.dashboard',
+            compact(
+                'cursos',
+                'certificados'
+            )
+        );
     }
 
     public function curso($id)
@@ -164,65 +151,70 @@ class EstudianteController extends Controller
         )->pluck('leccion_id')->toArray();
 
         $totalLecciones = 0;
-
         foreach ($curso->modulos as $modulo) {
             $totalLecciones += $modulo->lecciones->count();
         }
 
         $leccionesCompletadas = count($completadas);
-
         $porcentaje = 0;
 
         if ($totalLecciones > 0) {
-
             $porcentaje = round(
                 ($leccionesCompletadas / $totalLecciones) * 100
             );
         }
 
+        // Lógica estricta de bloqueo progresivo (Módulo N se desbloquea solo si el módulo anterior está totalmente completado)
         $modulosDesbloqueados = [];
+        $anteriorCompletado = true;
 
-        foreach ($curso->modulos as $modulo) {
-
-            $total = $modulo->lecciones->count();
-
+        foreach ($curso->modulos as $index => $modulo) {
+            $totalLeccionesModulo = $modulo->lecciones->count();
             $completadasModulo = 0;
 
             foreach ($modulo->lecciones as $leccion) {
-
                 if (in_array($leccion->id, $completadas)) {
                     $completadasModulo++;
                 }
             }
 
-            $modulosDesbloqueados[$modulo->id] =
-                ($total == 0 || $completadasModulo == $total);
+            $moduloTerminado = ($totalLeccionesModulo == 0 || $completadasModulo >= $totalLeccionesModulo);
+
+            if ($index === 0) {
+                $modulosDesbloqueados[$modulo->id] = true; // El primer módulo siempre está abierto
+            } else {
+                $modulosDesbloqueados[$modulo->id] = $anteriorCompletado;
+            }
+
+            // El siguiente módulo depende de si este terminó
+            $anteriorCompletado = $moduloTerminado;
         }
 
         return view(
-    'admin.estudiante.curso',
-    compact(
-        'curso',
-        'completadas',
-        'porcentaje',
-        'totalLecciones',
-        'leccionesCompletadas',
-        'modulosDesbloqueados'
-    )
-);
+            'admin.estudiante.curso',
+            compact(
+                'curso',
+                'completadas',
+                'porcentaje',
+                'totalLecciones',
+                'leccionesCompletadas',
+                'modulosDesbloqueados'
+            )
+        );
     }
+
     public function bienvenida()
-{
-    return view('admin.estudiante.bienvenida');
-}
+    {
+        return view('admin.estudiante.bienvenida');
+    }
 
-public function completarBienvenida()
-{
-    $user = auth()->user();
+    public function completarBienvenida()
+    {
+        $user = auth()->user();
 
-    $user->vio_video_bienvenida = true;
-    $user->save();
+        $user->vio_video_bienvenida = true;
+        $user->save();
 
-    return redirect()->route('estudiante.dashboard');
-}
+        return redirect()->route('estudiante.dashboard');
+    }
 }
