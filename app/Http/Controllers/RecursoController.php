@@ -27,7 +27,6 @@ class RecursoController extends Controller
     public function create(Request $request)
     {
         $lecciones = Leccion::orderBy('titulo')->get();
-
         $leccionSeleccionada = $request->leccion;
 
         return view(
@@ -48,13 +47,22 @@ class RecursoController extends Controller
             'archivo'    => 'required|file|max:51200'
         ]);
 
-        $ruta = $request->file('archivo')->store('recursos', 'public');
+        $file = $request->file('archivo');
+        $nombreArchivo = time() . '_' . uniqid() . '.' . strtolower($file->getClientOriginalExtension());
+        $directorio = public_path('imagenes/ContenidoCurso');
+
+        if (!is_dir($directorio)) {
+            mkdir($directorio, 0755, true);
+        }
+
+        $file->move($directorio, $nombreArchivo);
+        $rutaBD = 'ContenidoCurso/' . $nombreArchivo;
 
         Recurso::create([
             'leccion_id' => $request->leccion_id,
             'nombre'     => $request->nombre,
             'tipo'       => $request->tipo,
-            'archivo'    => $ruta
+            'archivo'    => $rutaBD
         ]);
 
         return redirect()
@@ -85,11 +93,16 @@ class RecursoController extends Controller
         ]);
 
         if ($request->hasFile('archivo')) {
+            $file = $request->file('archivo');
+            $nombreArchivo = time() . '_' . uniqid() . '.' . strtolower($file->getClientOriginalExtension());
+            $directorio = public_path('imagenes/ContenidoCurso');
 
-            $ruta = $request->file('archivo')
-                ->store('recursos', 'public');
+            if (!is_dir($directorio)) {
+                mkdir($directorio, 0755, true);
+            }
 
-            $recurso->archivo = $ruta;
+            $file->move($directorio, $nombreArchivo);
+            $recurso->archivo = 'ContenidoCurso/' . $nombreArchivo;
         }
 
         $recurso->leccion_id = $request->leccion_id;

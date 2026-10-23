@@ -11,6 +11,12 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
+        // Blindaje absoluto: Si un estudiante intenta entrar aquí, lo redirigimos a su panel
+        $user = auth()->user();
+        if ($user && $user->hasRole('estudiante')) {
+            return redirect()->route('estudiante.dashboard');
+        }
+
         // 1. Estadísticas y métricas generales calculadas dinámicamente
         $stats = [
             'total_estudiantes' => User::role('estudiante')->count(), // Si usas Spatie Roles

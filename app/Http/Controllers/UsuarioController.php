@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Mail; 
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,37 +43,49 @@ class UsuarioController extends Controller
     /**
      * Guardar usuario
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'username' => 'required|string|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'roles' => 'nullable|array',
-        ]);
+   
 
-        $usuario = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'username' => $request->username,
-            'password' => Hash::make($request->password),
+public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users',
+        'username' => 'required|string|unique:users',
+        'password' => 'required|string|min:8|confirmed',
+        'roles' => 'nullable|array',
+    ]);
 
-            // NUEVO
-            'activo' => true,
-            'password_temporal' => true,
-            'password_expires_at' => now()->addDays(3),
-            'vio_video_bienvenida' => false,
-        ]);
+    $passwordPlana = $request->password; // Guardamos la contraseña temporal para notificarla
 
-        if ($request->filled('roles')) {
-            $roles = Role::whereIn('id', $request->roles)->pluck('name')->toArray();
-            $usuario->syncRoles($roles);
-        }
+    $usuario = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'username' => $request->username,
+        'password' => Hash::make($passwordPlana),
+        'activo' => true,
+        'password_temporal' => true,
+        'password_expires_at' => now()->addDays(3),
+        'vio_video_bienvenida' => false,
+    ]);
 
-        return redirect()->route('usuarios.index')
-            ->with('success', 'Usuario creado correctamente.');
+    if ($request->filled('roles')) {
+        $roles = Role::whereIn('id', $request->roles)->pluck('name')->toArray();
+        $usuario->syncRoles($roles);
     }
+
+    // Envío del correo con las credenciales corporativas
+    try {
+        Mail::raw("¡Hola {$usuario->name}!\n\nDesde Empleamos Temporales te notificamos tus credenciales para ingresar a hacer tus capacitaciones obligatorias.\n\nTus datos de acceso son:\nUsuario / Correo: {$usuario->email}\nContraseña temporal: {$passwordPlana}\n\nPuedes ingresar a la plataforma aquí: " . url('/login') . "\n\nPor seguridad, recuerda cambiar tu contraseña al ingresar.", function ($message) use ($usuario) {
+            $message->to($usuario->email)
+                    ->subject('Credenciales de Acceso - Academia Corporativa Empleamos');
+        });
+    } catch (\Exception $e) {
+        // Opcional: Manejar error de correo si el servidor local no tiene SMTP configurado
+    }
+
+    return redirect()->route('usuarios.index')
+        ->with('success', 'Usuario creado correctamente y credenciales enviadas por correo.');
+}
 
     /**
      * Ver usuario

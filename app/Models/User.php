@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+
 use Spatie\Permission\Traits\HasRoles;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,26 +12,26 @@ class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
-   use HasRoles;
+    use HasRoles;
+
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-  protected $fillable = [
-    'password_temporal', 
-    'password_expires_at', 
-    'vio_video_bienvenida',
-    'name',
-    'email',
-    'email_verified_at',
-    'password',
-    'username',
-    'perfil',
-    'soporte_it',
-        'activo', // <-- Agregado aquí
-
-];
+    protected $fillable = [
+        'password_temporal', 
+        'password_expires_at', 
+        'vio_video_bienvenida',
+        'name',
+        'email',
+        'email_verified_at',
+        'password',
+        'username',
+        'perfil',
+        'soporte_it',
+        'activo',
+    ];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -43,50 +44,46 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
-
     protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
         'password_temporal' => 'boolean', 
         'password_expires_at' => 'datetime', 
         'vio_video_bienvenida' => 'boolean',
-    'soporte_it' => 'boolean',
-        'activo' => 'boolean', // <-- También casteado como booleano
-            'last_password_change' => 'datetime',
+        'soporte_it' => 'boolean',
+        'activo' => 'boolean',
+        'last_password_change' => 'datetime',
+    ];
 
-
-];
-
-
-    //CONVERTIR INFORMACION A MAYUSCULA
+    // CONVERTIR INFORMACION A MAYUSCULA
     public function setAttribute($key, $value)
-{
-    // Lista de atributos que deseas transformar a mayúscula
-    $camposEnMayuscula = ['name', 'username', 'perfil'];
+    {
+        // Lista de atributos que deseas transformar a mayúscula
+        $camposEnMayuscula = ['name', 'username', 'perfil'];
 
-    if (in_array($key, $camposEnMayuscula) && is_string($value)) {
-        $value = strtoupper($value);
+        if (in_array($key, $camposEnMayuscula) && is_string($value)) {
+            $value = strtoupper($value);
+        }
+
+        return parent::setAttribute($key, $value);
     }
 
-    return parent::setAttribute($key, $value);
-}
+    public function progresoLecciones()
+    {
+        return $this->hasMany(ProgresoLeccion::class);
+    }
 
+    public function certificados()
+    {
+        return $this->hasMany(\App\Models\Certificado::class);
+    }
 
-public function progresoLecciones()
-{
-    return $this->hasMany(ProgresoLeccion::class);
-}
-public function certificados()
-{
-    return $this->hasMany(\App\Models\Certificado::class);
-}
+    public function leccionesCompletadas()
+    {
+        return $this->belongsToMany(Leccion::class, 'progreso_lecciones', 'usuario_id', 'leccion_id');
+    }
 }

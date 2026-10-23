@@ -4,112 +4,101 @@ namespace App\Http\Controllers;
 
 use App\Models\Area;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AreaController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | LISTAR ÁREAS
-    |--------------------------------------------------------------------------
-    | Muestra todas las áreas registradas ordenadas alfabéticamente.
-    | Esta es la vista principal que ve el administrador.
-    |--------------------------------------------------------------------------
-    */
     public function index()
     {
         $areas = Area::orderBy('nombre')->get();
-
         return view('admin.areas.index', compact('areas'));
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | FORMULARIO DE CREACIÓN
-    |--------------------------------------------------------------------------
-    | Muestra el formulario para crear una nueva área.
-    |--------------------------------------------------------------------------
-    */
     public function create()
     {
         return view('admin.areas.create');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | GUARDAR NUEVA ÁREA
-    |--------------------------------------------------------------------------
-    | Valida la información enviada por el formulario y crea el registro
-    | en la base de datos.
-    |--------------------------------------------------------------------------
-    */
     public function store(Request $request)
     {
-        // Validación del formulario
         $request->validate([
             'nombre' => 'required|max:100|unique:areas,nombre',
+            'foto_lider' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        // Crear el área
+        $fotoPath = null;
+        if ($request->hasFile('foto_lider')) {
+            $file = $request->file('foto_lider');
+            $nombre = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('imagenes/JefeDeArea'), $nombre);
+            $fotoPath = 'JefeDeArea/' . $nombre;
+        }
+
         Area::create([
             'nombre' => $request->nombre,
+            'foto_lider' => $fotoPath,
         ]);
 
-        // Redireccionar con mensaje de éxito
-        return redirect()
-            ->route('areas.index')
-            ->with('success', 'Área creada correctamente.');
+        return redirect()->route('areas.index')->with('success', 'Área creada correctamente.');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | FORMULARIO DE EDICIÓN
-    |--------------------------------------------------------------------------
-    | Muestra el formulario con los datos del área seleccionada.
-    |--------------------------------------------------------------------------
-    */
     public function edit(Area $area)
     {
         return view('admin.areas.edit', compact('area'));
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ACTUALIZAR ÁREA
-    |--------------------------------------------------------------------------
-    | Valida la información y actualiza el área seleccionada.
-    |--------------------------------------------------------------------------
-    */
-    public function update(Request $request, Area $area)
+   public function update(Request $request, Area $area)
     {
-        // Validación
         $request->validate([
             'nombre' => 'required|max:100|unique:areas,nombre,' . $area->id,
+            'foto_lider' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        // Actualizar datos
+        $fotoPath = $area->foto_lider;
+        
+        if ($request->hasFile('foto_lider')) {
+            // Eliminar la foto anterior si existe en public/imagenes/
+            if ($area->foto_lider) {
+                $oldPath = public_path('imagenes/' . $area->foto_lider);
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
+                }
+            }
+
+            // Subir la nueva imagen a public/imagenes/JefeDeArea
+            $file = $request->file('foto_lider');
+            $nombre = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('imagenes/JefeDeArea'), $nombre);
+            
+            // Guardamos la ruta relativa que va dentro de public/imagenes/
+            $fotoPath = 'JefeDeArea/' . $nombre;
+        }
+
         $area->update([
             'nombre' => $request->nombre,
+            'foto_lider' => $fotoPath,
         ]);
 
-        // Redireccionar con mensaje
-        return redirect()
-            ->route('areas.index')
-            ->with('success', 'Área actualizada correctamente.');
+        return redirect()->route('areas.index')->with('success', 'Área actualizada correctamente.');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ELIMINAR ÁREA
-    |--------------------------------------------------------------------------
-    | Elimina el área seleccionada de la base de datos.
-    |--------------------------------------------------------------------------
-    */
     public function destroy(Area $area)
     {
-        $area->delete();
+        DB::transaction(function () use ($area) {
+            if ($area->foto_lider) {
+                $oldPath = public_path('imagenes/' . $area->foto_lider);
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
+                }
+            }
 
-        return redirect()
-            ->route('areas.index')
-            ->with('success', 'Área eliminada correctamente.');
+            foreach ($area->cursos as $curso) {
+                $curso->delete();
+            }
+
+            $area->delete();
+        });
+
+        return redirect()->route('areas.index')->with('success', 'Área y sus cursos asociados eliminados correctamente.');
     }
 }

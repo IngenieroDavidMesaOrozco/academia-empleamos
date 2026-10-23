@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Leccion;
 use App\Models\Modulo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class LeccionController extends Controller
 {
@@ -44,19 +45,38 @@ class LeccionController extends Controller
             'descripcion' => 'nullable',
             'video'       => 'nullable',
             'documento'   => 'nullable',
-            'orden'       => 'required|integer'
+            'orden'       => 'required|integer',
+            'recursos.*'  => 'nullable|file|mimes:pdf,ppt,pptx,doc,docx,jpg,jpeg,png,webp|max:10240'
         ]);
 
-        Leccion::create($request->all());
+        $leccion = Leccion::create([
+            'modulo_id'   => $request->modulo_id,
+            'titulo'      => $request->titulo,
+            'descripcion' => $request->descripcion,
+            'video'       => $request->video,
+            'documento'   => $request->documento,
+            'orden'       => $request->orden,
+        ]);
+
+        // Procesamiento seguro de multiples recursos adjuntos con nombres limpios
+        if ($request->hasFile('recursos')) {
+            foreach ($request->file('recursos') as $file) {
+                // Generamos un nombre unico y seguro para evitar conflictos de caracteres especiales
+                $nombreArchivo = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+                $path = $file->storeAs('lecciones/recursos', $nombreArchivo, 'public');
+                
+                $leccion->recursos()->create([
+                    'titulo'  => $file->getClientOriginalName(),
+                    'archivo' => $path
+                ]);
+            }
+        }
 
         return redirect()
             ->route('lecciones.index')
-            ->with('success', 'Lección creada correctamente.');
+            ->with('success', 'Leccion y recursos creados correctamente.');
     }
 
-    /**
-     * Vista para el administrador
-     */
     public function show(Leccion $leccion)
     {
         $leccion->load([
@@ -64,8 +84,6 @@ class LeccionController extends Controller
             'recursos'
         ]);
 
-        // CAMBIO AQUÍ: Apuntamos a la vista correcta del administrador
-        // Asegúrate de que el archivo exista en: resources/views/admin/lecciones/show.blade.php
         return view(
             'admin.lecciones.show',
             compact('leccion')
@@ -74,6 +92,7 @@ class LeccionController extends Controller
 
     public function edit(Leccion $leccion)
     {
+        $leccion->load('recursos');
         $modulos = Modulo::orderBy('nombre')->get();
 
         return view(
@@ -93,22 +112,51 @@ class LeccionController extends Controller
             'descripcion' => 'nullable',
             'video'       => 'nullable',
             'documento'   => 'nullable',
-            'orden'       => 'required|integer'
+            'orden'       => 'required|integer',
+            'recursos.*'  => 'nullable|file|mimes:pdf,ppt,pptx,doc,docx,jpg,jpeg,png,webp|max:10240'
         ]);
 
-        $leccion->update($request->all());
+        $leccion->update([
+            'modulo_id'   => $request->modulo_id,
+            'titulo'      => $request->titulo,
+            'descripcion' => $request->descripcion,
+            'video'       => $request->video,
+            'documento'   => $request->documento,
+            'orden'       => $request->orden,
+        ]);
+
+        // Agregar nuevos recursos si se adjuntan en la edicion
+        if ($request->hasFile('recursos')) {
+            foreach ($request->file('recursos') as $file) {
+                $nombreArchivo = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+                $path = $file->storeAs('lecciones/recursos', $nombreArchivo, 'public');
+                
+                $leccion->recursos()->create([
+                    'titulo'  => $file->getClientOriginalName(),
+                    'archivo' => $path
+                ]);
+            }
+        }
 
         return redirect()
             ->route('lecciones.index')
-            ->with('success', 'Lección actualizada correctamente.');
+            ->with('success', 'Leccion actualizada correctamente.');
     }
 
     public function destroy(Leccion $leccion)
     {
+        // Eliminacion fisica de los archivos almacenados antes de borrar la leccion
+        foreach ($leccion->recursos as $recurso) {
+            if (Storage::disk('public')->exists($recurso->archivo)) {
+                Storage::disk('public')->delete($recurso->archivo);
+            }
+            $recurso->delete();
+        }
+
         $leccion->delete();
 
         return redirect()
             ->route('lecciones.index')
-            ->with('success', 'Lección eliminada correctamente.');
+            ->with('success', 'Leccion y archivos eliminados correctamente.');
     }
 }

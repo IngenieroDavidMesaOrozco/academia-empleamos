@@ -1,127 +1,143 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container py-4">
+<div class="container py-5">
 
-    <!-- Encabezado amigable y dinámico -->
-    <div class="row mb-4 align-items-center">
+    <!-- Encabezado corporativo moderno en modo oscuro -->
+    <div class="row mb-5 align-items-center">
         <div class="col">
-            <h2 class="fw-bold text-white mb-1">
-                🎓 ¡Hola, {{ auth()->user()->name }}! Tu Ruta de Aprendizaje
-            </h2>
-            <p class="text-muted mb-0">Completa cada curso en orden estricto para desbloquear el siguiente nivel y obtener tus certificados.</p>
+            <div class="d-inline-flex align-items-center bg-dark text-info border border-secondary px-3 py-1 rounded-pill fw-bold small mb-3 shadow-sm">
+                <i class="fa-solid fa-graduation-cap me-2"></i> Ruta de Aprendizaje
+            </div>
+            <h1 class="fw-bold text-dark display-6 mb-2">
+                ¡Hola, {{ auth()->user()->name }}! 
+            </h1>
+            <p class="text-secondary mb-0 fs-6">
+                Explora todas las capacitaciones disponibles y descarga tu certificación oficial.
+            </p>
         </div>
     </div>
 
     @if(session('success'))
-        <div class="alert alert-success border-0 shadow-sm mb-4">
-            {{ session('success') }}
+        <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4">
+            <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
         </div>
     @endif
 
-    <!-- Pestañas de navegación amigables -->
+    <!-- Pestañas de navegación -->
     <ul class="nav nav-pills mb-4 gap-2" id="studentTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active fw-bold px-4 rounded-pill" id="cursos-tab" data-bs-toggle="pill" data-bs-target="#cursos-pane" type="button" role="tab">
-                📚 Mis Cursos
+            <button class="nav-link active fw-bold px-4 rounded-pill shadow-sm bg-primary text-white" id="cursos-tab" data-bs-toggle="pill" data-bs-target="#cursos-pane" type="button" role="tab">
+                <i class="fa-solid fa-book-open me-2"></i> Mis Cursos
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold px-4 rounded-pill bg-dark text-white border border-secondary" id="certificados-tab" data-bs-toggle="pill" data-bs-target="#certificados-pane" type="button" role="tab">
-                🏆 Mis Certificados
+            <button class="nav-link fw-bold px-4 rounded-pill bg-dark text-light border border-secondary shadow-sm" id="certificados-tab" data-bs-toggle="pill" data-bs-target="#certificados-pane" type="button" role="tab">
+                <i class="fa-solid fa-award me-2 text-warning"></i> Certificación
             </button>
         </li>
     </ul>
 
     <div class="tab-content" id="studentTabsContent">
         
-        <!-- PESTAÑA 1: CURSOS CON BLOQUEO SECUENCIAL ESTRICTO -->
+        <!-- PESTAÑA 1: CURSOS -->
         <div class="tab-pane fade show active" id="cursos-pane" role="tabpanel">
-            <div class="row">
-                @php
-                    $cursoAnteriorCompletado = true; // El primer curso siempre está disponible de entrada
-                @endphp
-
+            <div class="row g-4">
                 @foreach($cursos as $curso)
                     @php
                         $tieneCertificado = isset($certificados[$curso->id]);
-                        // El curso actual se bloquea si el curso anterior NO tiene certificado (no está completado)
-                        $bloqueado = !$cursoAnteriorCompletado;
                     @endphp
 
-                    <div class="col-md-4 mb-4">
-                        <div class="card shadow h-100 {{ $bloqueado ? 'bg-black text-muted opacity-50 border border-secondary' : 'bg-dark text-white border-0' }} rounded-4 overflow-hidden">
+                    <div class="col-md-4">
+                        <div class="card curso-card shadow-lg h-100 bg-dark text-white border-0 rounded-4 overflow-hidden d-flex flex-column">
                             
-                            <div class="card-header bg-transparent border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
-                                <span class="badge {{ $tieneCertificado ? 'bg-success' : ($bloqueado ? 'bg-secondary' : 'bg-primary') }} rounded-pill px-3">
-                                    {{ $tieneCertificado ? '✅ Completado' : ($bloqueado ? '🔒 Bloqueado' : '🔥 En Progreso') }}
-                                </span>
-                                <small class="text-muted">Módulos: {{ $curso->modulos->count() }}</small>
+                            <!-- SECCIÓN SUPERIOR: foto del líder del área (se busca sola en public/imagenes) -->
+                            <div class="position-relative w-100 bg-black" style="height: 220px; overflow: hidden;">
+                                @php
+                                    $urlLiderArea = $curso->area->foto_lider_url ?? null;
+                                @endphp
+
+                                @if($urlLiderArea)
+                                    <img src="{{ $urlLiderArea }}"
+                                         class="w-100 h-100"
+                                         style="object-fit: cover; object-position: center;"
+                                         alt="Líder del Área"
+                                         onerror="this.style.display='none';">
+                                @else
+                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background:#1f2937;">
+                                        <i class="fa-solid fa-user-tie fa-3x text-secondary opacity-50"></i>
+                                    </div>
+                                @endif
+
+                                <div class="position-absolute top-0 start-0 m-3 z-2">
+                                    <span class="badge {{ $tieneCertificado ? 'bg-success' : 'bg-primary' }} rounded-pill px-3 py-2 shadow">
+                                        {!! $tieneCertificado ? '✔ Completado' : '🚀 Disponible' !!}
+                                    </span>
+                                </div>
                             </div>
 
-                            <div class="card-body d-flex flex-column justify-content-between p-4">
+                            <!-- SECCIÓN INFERIOR -->
+                            <div class="card-body d-flex flex-column justify-content-between p-4 bg-dark flex-grow-1">
                                 <div>
-                                    <h4 class="fw-bold mb-2 {{ $bloqueado ? 'text-muted' : 'text-white' }}">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="small text-info fw-semibold uppercase tracking-wider">{{ $curso->area->nombre ?? 'Corporativo' }}</span>
+                                    </div>
+                                    <h4 class="fw-bold mb-2 text-white fs-5">
                                         {{ $curso->nombre }}
                                     </h4>
-                                    <p class="small text-muted mb-4">
-                                        {{ $curso->descripcion ?? 'Capacitación profesional interactiva.' }}
+                                    <p class="small text-white-50 mb-4 lh-base text-truncate-3">
+                                        {{ $curso->descripcion ?? 'Capacitación profesional interactiva corporativa.' }}
                                     </p>
                                 </div>
 
-                                <div>
-                                    @if($bloqueado)
-                                        <button class="btn btn-outline-secondary w-100 rounded-pill py-2 disabled" style="font-size: 0.85rem;">
-                                            <i class="fa-solid fa-lock me-1"></i> Completa el curso anterior para desbloquear
-                                        </button>
-                                    @else
-                                        <a href="{{ route('estudiante.curso', $curso->id) }}" class="btn {{ $tieneCertificado ? 'btn-outline-success' : 'btn-primary' }} w-100 fw-bold rounded-pill py-2 shadow-sm mb-2">
-                                            📖 {{ $tieneCertificado ? 'Repasar Curso' : 'Continuar Curso 🚀' }}
-                                        </a>
-                                    @endif
+                                <div class="d-grid gap-2">
+                                    <a href="{{ route('estudiante.curso', $curso->id) }}" class="btn {{ $tieneCertificado ? 'btn-outline-light' : 'btn-primary' }} fw-bold rounded-pill py-2 shadow-sm">
+                                        {!! $tieneCertificado ? 'Repasar Curso' : 'Continuar Curso <i class="fa-solid fa-arrow-right ms-1"></i>' !!}
+                                    </a>
 
                                     @if($tieneCertificado)
-                                        <a href="{{ route('certificados.descargar', $certificados[$curso->id]) }}" class="btn btn-success w-100 fw-bold rounded-pill py-2 shadow-sm">
-                                            🎓 Descargar Certificado
+                                        <a href="{{ route('certificados.descargar', $certificados[$curso->id]) }}" class="btn btn-success fw-bold rounded-pill py-2 shadow-sm">
+                                            <i class="fa-solid fa-download me-1"></i> Descargar Certificación
                                         </a>
                                     @endif
                                 </div>
                             </div>
+
                         </div>
                     </div>
-
-                    @php
-                        // Actualizamos la regla: para que el siguiente ciclo libere el curso sucesor, este curso actual debe estar certificado
-                        $cursoAnteriorCompletado = $tieneCertificado;
-                    @endphp
                 @endforeach
             </div>
         </div>
 
-        <!-- PESTAÑA 2: CERTIFICADOS Y LOGROS -->
+        <!-- PESTAÑA 2: CERTIFICACIÓN -->
         <div class="tab-pane fade" id="certificados-pane" role="tabpanel">
-            <div class="card shadow border-0 bg-dark text-white rounded-4 p-4">
-                <h4 class="fw-bold text-warning mb-3">🏆 Tus Diplomas Obtenidos</h4>
-                <p class="text-muted mb-4">Aquí se listan todos los certificados oficiales generados al completar satisfactoriamente tus evaluaciones.</p>
+            <div class="card shadow-lg border-0 bg-dark text-white rounded-4 p-4">
+                <h4 class="fw-bold text-warning mb-2"><i class="fa-solid fa-award me-2"></i> Tu Certificación Oficial</h4>
+                <p class="text-white-50 mb-4 small">Descarga tu diploma generado automáticamente con tus nombres tras completar satisfactoriamente las evaluaciones.</p>
 
-                <div class="row">
+                <div class="row g-3">
                     @forelse($certificados as $cursoId => $certId)
                         @php
                             $cursoCertificado = $cursos->where('id', $cursoId)->first();
                         @endphp
-                        <div class="col-md-4 mb-3">
-                            <div class="p-3 bg-black border border-secondary rounded-4 text-center">
-                                <i class="fa-solid fa-award text-warning fa-3x mb-2"></i>
-                                <h5 class="fw-bold text-white mb-1">{{ $cursoCertificado->nombre ?? 'Curso Completado' }}</h5>
-                                <p class="text-muted small mb-3">¡Aprobado con éxito!</p>
-                                <a href="{{ route('certificados.descargar', $certId) }}" class="btn btn-success btn-sm rounded-pill px-4 fw-bold">
-                                    <i class="fa-solid fa-download me-1"></i> Descargar Diploma
+                        <div class="col-md-4">
+                            <div class="p-4 bg-black border border-secondary rounded-4 text-center h-100 d-flex flex-column justify-content-between shadow-sm">
+                                <div>
+                                    <div class="text-warning mb-3">
+                                        <i class="fa-solid fa-award fa-3x"></i>
+                                    </div>
+                                    <h5 class="fw-bold text-white mb-1 fs-6">{{ $cursoCertificado->nombre ?? 'Curso Completado' }}</h5>
+                                    <p class="text-white-50 small mb-3">¡Aprobado con éxito por {{ auth()->user()->name }}!</p>
+                                </div>
+                                <a href="{{ route('certificados.descargar', $certId) }}" class="btn btn-success btn-sm rounded-pill px-4 fw-bold py-2 shadow-sm">
+                                    <i class="fa-solid fa-download me-1"></i> Descargar Certificación
                                 </a>
                             </div>
                         </div>
                     @empty
-                        <div class="col-12 text-center py-4 text-muted">
-                            <p class="mb-0">Aún no tienes certificados. ¡Termina y aprueba tu primer curso para desbloquear tu diploma!</p>
+                        <div class="col-12 text-center py-5 text-white-50">
+                            <i class="fa-solid fa-folder-open fa-3x mb-3 opacity-50"></i>
+                            <p class="mb-0">Aún no cuentas con certificaciones. ¡Termina y aprueba tus cursos para desbloquearlas!</p>
                         </div>
                     @endforelse
                 </div>
@@ -131,8 +147,20 @@
     </div>
 
 </div>
-@endsection
 
-<div>
-    
-</div>
+<style>
+    .curso-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .curso-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.4) !important;
+    }
+    .text-truncate-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+@endsection

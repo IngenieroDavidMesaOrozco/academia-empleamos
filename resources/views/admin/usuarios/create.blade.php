@@ -4,40 +4,37 @@
 
 @section('content')
 
-<div class="card p-4">
+<div class="card p-4 shadow-sm border-0 rounded-4">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-
         <div>
-            <h3 class="fw-bold mb-1">Crear Usuario</h3>
-            <p class="text-muted mb-0">Completa la información del nuevo usuario.</p>
+            <h3 class="fw-bold mb-1">Inscribir Nuevo Usuario</h3>
+            <p class="text-muted mb-0">Registra al colaborador y el sistema le notificará sus credenciales de acceso por correo.</p>
         </div>
 
-        <a href="{{ route('usuarios.index') }}" class="btn btn-outline-secondary">
+        <a href="{{ route('usuarios.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
             Volver
         </a>
-
     </div>
 
     <form method="POST" action="{{ route('usuarios.store') }}">
-
         @csrf
 
         <div class="row g-4">
 
             <div class="col-md-6">
                 <label class="form-label fw-semibold">Nombre completo</label>
-                <input type="text" name="name" class="form-control" required>
+                <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
             </div>
 
             <div class="col-md-6">
                 <label class="form-label fw-semibold">Correo electrónico</label>
-                <input type="email" name="email" class="form-control" required>
+                <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
             </div>
 
             <div class="col-md-6">
                 <label class="form-label fw-semibold">Nombre de usuario</label>
-                <input type="text" name="username" class="form-control" required>
+                <input type="text" name="username" class="form-control" value="{{ old('username') }}" required>
             </div>
 
             <div class="col-md-6">
@@ -51,13 +48,9 @@
             </div>
 
             <div class="col-md-6">
-
-                <label class="form-label fw-semibold d-block mb-2">Roles</label>
-
+                <label class="form-label fw-semibold d-block mb-2">Roles del sistema</label>
                 <div class="card border rounded-4 p-3 bg-light-subtle">
-
                     @foreach($roles as $rol)
-
                         <div class="form-check mb-2">
                             <input class="form-check-input"
                                    type="checkbox"
@@ -69,26 +62,21 @@
                                 {{ $rol->name }}
                             </label>
                         </div>
-
                     @endforeach
-
                 </div>
-
             </div>
 
         </div>
 
         <div class="mt-4 d-flex gap-2">
-
-            <button class="btn btn-primary">
-                <i class="fa-solid fa-floppy-disk me-2"></i>
-                Guardar Usuario
+            <button class="btn btn-primary rounded-pill px-4 fw-bold">
+                <i class="fa-solid fa-paper-plane me-2"></i>
+                Guardar y Enviar Credenciales
             </button>
 
-            <a href="{{ route('usuarios.index') }}" class="btn btn-outline-secondary">
+            <a href="{{ route('usuarios.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
                 Cancelar
             </a>
-
         </div>
 
     </form>

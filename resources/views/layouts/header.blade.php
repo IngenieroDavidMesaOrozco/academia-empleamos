@@ -3,7 +3,7 @@
         <div class="container-fluid px-4">
 
             <a class="navbar-brand d-flex align-items-center fw-semibold" href="{{ url('/home') }}">
-                <img src="{{ asset('imagenes/logoET.png') }}"
+                <img src="{{ asset("imagenes/ContenidoCurso/logo-empleamos-job.png") }}"
                      alt="Logo Empleamos"
                      style="height:44px;width:44px;border-radius:50%;object-fit:cover;margin-right:12px;">
 

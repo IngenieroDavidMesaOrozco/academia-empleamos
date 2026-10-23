@@ -15,7 +15,8 @@ class Evaluacion extends Model
         'descripcion',
         'puntaje_aprobacion',
         'tiempo',
-        'estado'
+        'estado',
+        'archivo_pdf'
     ];
 
     public function preguntas()
